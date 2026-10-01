@@ -1,0 +1,7 @@
+# Secrets et fichiers générés : ne jamais commiter
+.env
+nginx/certs/*
+!nginx/certs/.gitkeep
+backups/
+__pycache__/
+*.pyc
