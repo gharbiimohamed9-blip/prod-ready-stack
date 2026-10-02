@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ShellCheck
+        run: shellcheck -x --source-path=SCRIPTDIR scripts/*.sh postgres/init/*.sh mongo/init/*.sh
+
+      - name: Valider les fichiers Docker Compose
+        run: >
+          docker compose --env-file .env.example
+          -f docker-compose.yml -f docker-compose.monitoring.yml config -q
+
+      - name: Syntaxe Python
+        run: >
+          python3 -m py_compile
+          api/app/main.py
+          monitoring/alert-logger/alert_logger.py
+          monitoring/grafana/make_dashboard.py
+
+      - name: Valider le JSON du dashboard Grafana
+        run: python3 -m json.tool monitoring/grafana/dashboards/stack-overview.json > /dev/null
+
+  build:
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build de l'image API
+        run: docker build -t prod-ready-stack-api:ci ./api
+
+      - name: Scan de vulnérabilités (Trivy)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: prod-ready-stack-api:ci
+          severity: HIGH,CRITICAL
+          exit-code: "0"
