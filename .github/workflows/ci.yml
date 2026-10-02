@@ -41,7 +41,7 @@ jobs:
         run: docker build -t prod-ready-stack-api:ci ./api
 
       - name: Scan de vulnérabilités (Trivy)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: prod-ready-stack-api:ci
           severity: HIGH,CRITICAL
