@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: prod-ready-stack
+    folder: Production Stack
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards

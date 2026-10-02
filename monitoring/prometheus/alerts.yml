@@ -1,0 +1,52 @@
+groups:
+  - name: stack-alerts
+    rules:
+      - alert: TargetDown
+        expr: up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} indisponible ({{ $labels.instance }})"
+
+      - alert: PostgresDown
+        expr: pg_up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL ne répond plus"
+
+      - alert: MongoDown
+        expr: mongodb_up == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "MongoDB ne répond plus"
+
+      - alert: DiskUsageHigh
+        expr: >
+          100 - (node_filesystem_avail_bytes{mountpoint="/",fstype!="rootfs"} * 100
+          / node_filesystem_size_bytes{mountpoint="/",fstype!="rootfs"}) > 80
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Disque utilisé à plus de 80 %"
+
+      - alert: PostgresTooManyConnections
+        expr: sum(pg_stat_activity_count) / max(pg_settings_max_connections) > 0.8
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Plus de 80 % des connexions PostgreSQL sont utilisées"
+
+      - alert: ApiServerErrors
+        expr: sum(rate(http_requests_total{status=~"5.."}[1m])) > 0
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "L'API renvoie des erreurs 5xx"
